@@ -2,6 +2,9 @@
 import cv2
 import datetime
 import matplotlib.pyplot as plt
+import cvlib
+from cvlib.object_detection import draw_bbox
+import tensorflow as tf
 
 face_cascade = cv2.CascadeClassifier("./App6/haarcascade_frontalface_default.xml")
 
@@ -25,6 +28,14 @@ def runFaceClassifer(img):
 
     return(re_img, len(faces))
 
+def runObjectClassifier(img):
+    #gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    bbox, label, conf = cvlib.detect_common_objects(img)
+    img = draw_bbox(img, bbox, label, conf)
+
+    return img, len(label)
+
 video = cv2.VideoCapture(0)
 
 timestamps = []
@@ -35,18 +46,19 @@ fig = plt.figure()
 while True:
     check, frame = video.read()
 
-    face_frame, num_faces  = runFaceClassifer(frame)
+    #face_frame, num_objs = runFaceClassifer(frame)
+    output_frame, num_objs = runObjectClassifier(frame)
 
     timestamps.append( datetime.datetime.now().strftime("%H:%M:%S")  )
-    num_faces_list.append(num_faces)
+    num_faces_list.append(num_objs)
 
     plt.clf()
     plt.bar(timestamps, num_faces_list, 0.1, color='blue')
     fig.canvas.draw()
 
-    cv2.imshow("Test", face_frame)
+    cv2.imshow("Test", output_frame)
 
-    key = cv2.waitKey(1000)
+    key = cv2.waitKey(100)
 
     if key ==ord("q"):
         break
